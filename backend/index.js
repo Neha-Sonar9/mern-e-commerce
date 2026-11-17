@@ -47,6 +47,13 @@ server.get("/",(req,res)=>{
     res.status(200).json({message:'running'})
 })
 
+const mongoose = require("mongoose")
+
+server.get("/health", (req, res) => {
+  const dbUp = mongoose.connection.readyState === 1
+  res.status(dbUp ? 200 : 503).json({ status: dbUp ? "ok" : "degraded", db: dbUp ? "up" : "down" })
+})
+
 server.listen(8000,()=>{
     console.log('server [STARTED] ~ http://localhost:8000');
 })

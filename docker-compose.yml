@@ -1,0 +1,52 @@
+name: mern-ecommerce
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_BASE_URL: /api
+    image: mern-frontend:local
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - mern-front-network
+
+  backend:
+    build: ./backend
+    image: mern-backend:local
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.docker
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mern-front-network
+      - mern-back-network
+
+  db:
+    image: mongo:7.0
+    restart: unless-stopped
+    env_file:
+      - ./mongo/.env.mongo
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mern-back-network
+
+volumes:
+  mongo-data:
+
+networks:
+  mern-front-network:
+  mern-back-network:
