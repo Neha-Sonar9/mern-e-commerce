@@ -1,0 +1,52 @@
+name: CI pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths-ignore: ["**.md", "LICENSE"]
+  workflows_dispatch:
+    input:
+      environment:
+        description: "choose env to build: "
+        required: true
+        type: choice
+        options: [dev, stag, prod]
+        default: dev
+
+
+env:
+   IMAGE_NAME:    
+   IMAGE_VERSION:
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - name: code checkout 
+        uses: actions/checkout@v6
+
+      - name: build packages
+        run: 
+          npm install 
+          npm test
+
+      - name: docker image 
+        run: 
+          docker build -t ${{IMAGE_NAME}}:${{IMAGE_VERSION}}
+
+      - name: trivy setup 
+        run:
+          aquasecurity/trivy-action@0.36.0
+
+      - name: trivy scanning
+        run: 
+          trivy image --exit-code 1 --severity HIGH,CRITICAL ${{IMAGE_NAME}}  
+
+      - name: image push   
+        run:
+          docker push $IMAGE_NAME:$IMAGE_VERSION    
+      
+               
+
