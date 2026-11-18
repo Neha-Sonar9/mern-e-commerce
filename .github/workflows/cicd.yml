@@ -1,11 +1,6 @@
 name: CI pipeline
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    paths-ignore: ["**.md", "LICENSE"]
   workflows_dispatch:
     input:
       environment:
@@ -15,10 +10,9 @@ on:
         options: [dev, stag, prod]
         default: dev
 
+env:                                       # VARIABLES: same for every run
+  IMAGE_PREFIX: ghcr.io/neha-sonar9 
 
-env:
-   IMAGE_NAME:    
-   IMAGE_VERSION:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
