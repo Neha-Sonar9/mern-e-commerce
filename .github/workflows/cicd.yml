@@ -11,8 +11,7 @@ on:
         default: dev
 
 env:                                       # VARIABLES: same for every run
-  IMAGE_PREFIX: ghcr.io/neha-sonar9 
-
+  IMAGE_PREFIX: 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
