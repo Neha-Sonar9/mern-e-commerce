@@ -1,7 +1,7 @@
 name: CI pipeline
 
 on:
-  workflows_dispatch:
+  workflow_dispatch:
     input:
       environment:
         description: "choose env to build: "

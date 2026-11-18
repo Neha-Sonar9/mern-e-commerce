@@ -27,6 +27,13 @@ jobs:
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/mern-frontend:${{ github.sha }}
 
+      - name: Backend docker build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ vars.DOCKER_USERNAME }}/mern-backend:${{ github.sha }}   
+
              
 
 
