@@ -1,8 +1,7 @@
 #goal: docker setup for both frontend and backend 
 name: docker setup
 on:
-   push:
-    branches: [main]
+   workflow_call
 
 jobs:
   docker-setting-up:
