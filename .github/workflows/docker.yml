@@ -18,6 +18,23 @@ jobs:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }} 
   
+      - name: setup Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      
+      - name: Install backend dependencies
+        uses: ./backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        uses: ./frontend
+        run: npm ci --legacy-peer-deps
+
 
       - name: frontend docker build and push
         uses: docker/build-push-action@v7
@@ -53,6 +70,8 @@ jobs:
           exit-code: "1"       
       - name: Push Backend image
         run: docker push ${{ vars.DOCKER_USERNAME }}/mern-backend:${{ github.sha }} 
+
+
 
 
              
