@@ -1,0 +1,16 @@
+name: hello
+on: 
+  push: [main]
+
+  jobs: 
+    welcome from hello workflow:     
+    runs-on: ubuntu-latest
+    
+    steps:
+       - name: welcome step
+         run: echo "Nice to see you."
+
+     
+
+               
+
