@@ -1,15 +1,40 @@
 #goal: docker setup for both frontend and backend 
-name: docker setup
+name: mern ci pipeline
 on:
    push
 
 jobs:
-  docker-setting-up:
+  CI-pipeline:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: frontend
+            install-command: npm ci --legacy-peer-deps
+          - service: backend
+            install-command: npm ci
 
     steps:
       - name: code checkout
         uses: actions/checkout@v7
+      
+      - name: setup Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ./${{ matrix.service }}/package-lock.json
+      
+      - name: install dependencies
+        working-directory: ./${{ matrix.service }}
+        run: ${{ matrix.install-command }}
+
+      - name: code linter
+        working-directory: ./${{ matrix.service }}
+        run: npm run lint
+      
       - name: Docker setup  
         uses: docker/setup-buildx-action@v4
       - name: docker login
@@ -17,63 +42,22 @@ jobs:
         with:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }} 
-  
-      - name: setup Nodejs
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
-      
-      - name: Install backend dependencies
-        working-directory: ./backend
-        run: npm ci
 
-      - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: npm ci --legacy-peer-deps
-
-
-      - name: frontend docker build and push
+      - name: docker build and push
         uses: docker/build-push-action@v7
         with:
-          context: ./frontend
+          context: ./${{ matrix.service }}
           load: true
           push: false
-          tags: ${{ vars.DOCKER_USERNAME }}/mern-frontend:${{ github.sha }}
-      - name: scan frontend image
+          tags: ${{ vars.DOCKER_USERNAME }}/mern-${{ matrix.service }}:${{ github.sha }}
+
+      - name: scan image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ${{ vars.DOCKER_USERNAME }}/mern-frontend:${{ github.sha }}
+          image-ref: ${{ vars.DOCKER_USERNAME }}/mern-${{ matrix.service }}:${{ github.sha }}
           severity: CRITICAL
           ignore-unfixed: true
           exit-code: "1"    
-      - name: Push frontend image
-        run: docker push ${{ vars.DOCKER_USERNAME }}/mern-frontend:${{ github.sha }}
 
-
-      - name: Backend docker build and push
-        uses: docker/build-push-action@v7
-        with:
-          context: ./backend
-          load: true
-          push: false
-          tags: ${{ vars.DOCKER_USERNAME }}/mern-backend:${{ github.sha }}  
-      - name: scan Backend image
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: ${{ vars.DOCKER_USERNAME }}/mern-backend:${{ github.sha }}
-          severity: CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"       
-      - name: Push Backend image
-        run: docker push ${{ vars.DOCKER_USERNAME }}/mern-backend:${{ github.sha }} 
-
-
-
-
-             
-
-
+      - name: Push image
+        run: docker push ${{ vars.DOCKER_USERNAME }}/mern-${{ matrix.service }}:${{ github.sha }}
