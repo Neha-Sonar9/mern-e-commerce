@@ -1,5 +1,4 @@
 const Order = require("../models/Order");
-const fs = require("fs");
 
 const orders = [
   {
